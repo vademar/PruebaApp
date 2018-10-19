@@ -2,7 +2,7 @@
 
 const mogoose =require('mongoose')
 const connect =  require('../../../database/collections/connect')
-const registro = require('../../../database/collections/users')
+const Registro = require('../../../database/collections/users')
 
 //const Img = require('../../../database/collections/img')
 const express = require('express')
@@ -41,7 +41,7 @@ route.post('/registro', (req, res) =>{
     res.status(200).send(usertStored);
   })
 })
-/*
+
 ///buscar po ID
 route.get('/registro/:ci',(req, res)=>{
   let ci = req.params.ci
@@ -82,6 +82,6 @@ route.delete('/registro/:Bo',(req, res)=>{
       res.status(200).send({message:`El usuarioa sido elminado:`})
     })
   })
-})*/
+})
 
 module.exports = route
