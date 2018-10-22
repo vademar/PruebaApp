@@ -45,9 +45,9 @@ route.post('/registro', (req, res) =>{
 ///buscar po ID
 route.get('/registro/:ci',(req, res)=>{
   let ci = req.params.ci
-  registro.findById(ci,(err, Usuario) => {
+  Registro.findById(ci,(err, Usuario) => {
     if(err) return res.status(500).send({message:`error al realizar la peticion:${err}`})
-    if(!registro) return res.status(404).send({message:`el usuario no existe:${err}`})
+    if(!Registro) return res.status(404).send({message:`el usuario no existe:${err}`})
     
     res.status(200).send({Usuario})
   })
@@ -55,7 +55,7 @@ route.get('/registro/:ci',(req, res)=>{
 
 ///buscar todo
 route.get('/registro/',(req, res)=>{
-  registro.find({}, (err, mostrar) =>{
+  Registro.find({}, (err, mostrar) =>{
     if(err) return res.status(500).send({message:`error al realizar la peticion:${err}`})
     if(!mostrar) return res.status(404).send({message:`no existen usarios:${err}`})
     res.send(200,{mostrar})
@@ -66,7 +66,7 @@ route.get('/registro/',(req, res)=>{
 route.put('/registro/:id',(req, res) => {
   let id = req.params.id
   let update = req.body
-  registro.findByIdAndUpdate(id, update, (err, actUs) => {
+  Registro.findByIdAndUpdate(id, update, (err, actUs) => {
     if(err) return res.status(500).send({message:`error al actualizar:${err}`})
     res.status(200).send({actUs})
   })
@@ -75,13 +75,28 @@ route.put('/registro/:id',(req, res) => {
 ///eliminar
 route.delete('/registro/:Bo',(req, res)=>{
   let Bo = req.params.Bo
-  registro.findById(Bo, (err,Usuario)=>{
+  Registro.findById(Bo, (err,Usuario)=>{
     if(err) return res.status(500).send({message:`error al borrar1:${err}`})
     Usuario.remove(err => {
       if(err) return res.status(500).send({message:`error al borrar2:${err}`})
-      res.status(200).send({message:`El usuarioa sido elminado:`})
+      res.status(200).send({message:`El usuario a sido eliminado:`})
     })
   })
 })
 
+        ///parte del login///
+route.get('/login/:ci=:password', (req, res) =>{
+  //res.send({ email:`${req.params.email}`,password:`${req.params.pass}`})
+  console.log(req.params)
+
+  let ci =req.params.ci
+  let password=req.params.password
+
+  Registro.find({"ci":ci,"password":password}, (err, user) =>{
+      if(err) return res.status(500).send({menssage:`Error en la peticion: ${err}`})
+      if(user.length == 0) return res.status(404).send({message:`usuario no existe`})
+
+      res.status(200).send({'ci':user})
+  })
+})
 module.exports = route
