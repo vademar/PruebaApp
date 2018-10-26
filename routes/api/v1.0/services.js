@@ -3,6 +3,7 @@
 const mogoose =require('mongoose')
 const connect =  require('../../../database/collections/connect')
 const Registro = require('../../../database/collections/users')
+const Profesio = require('../../../database/collections/profesiones')
 
 //const Img = require('../../../database/collections/img')
 const express = require('express')
@@ -16,29 +17,41 @@ const multer = require('multer');
 const fs = require('fs')
 const route = express.Router()
 
-// metodos de peticion GET, POTS, PUT, DELETE
 route.get('/', (req, res) =>{
     res.send({ menssage:'SERVICIO API-RES EVENTOS SEDES'})
 })
 
-//registro de usuarios ujsando la coleccion users
+// metodos de peticion GET, POTS, PUT, DELETE
+//registro de usuarios usando la coleccion users
+
 route.post('/registro', (req, res) =>{
+
   console.log('POST /api/registro')
-  console.log(req.body)
-  
+  console.log("request; ",req.body)
+
   let registro = new Registro()
-  registro.nombre =req.body.nombre
+  registro.nombre = req.body.nombre
   registro.apellido = req.body.apellido
+  registro.ci = req.body.ci
   registro.profesion = req.body.profesion
   registro.institucion = req.body.institucion
   registro.cargo = req.body.cargo
-  registro.celular = req.body.celular
-  registro.ci = req.body.ci
   registro.password = req.body.password
-
-  registro.save((err, usertStored) =>{
-    if(err) res.status(404).send({message: `Error al salvar la base de datos:${err}`})
-    res.status(200).send(usertStored);
+  
+  Registro.findOne({'ci':registro.ci},(err,e) => {
+    if(e){
+        console.log('Cedula repetida')
+        res.status(404).send({message:`Esta Cedula: ${registro.ci} ya se encuentra registrado`})
+    }
+    else{
+        registro.save((err, usertStored) =>{
+            if(err) {
+              res.status(404).send({messaje: `Error al salvar la base de datos:${err}`})
+              console.log(err)
+            }
+            res.status(200).send(usertStored)
+        })
+    }
   })
 })
 
@@ -94,9 +107,43 @@ route.get('/login/:ci=:password', (req, res) =>{
 
   Registro.find({"ci":ci,"password":password}, (err, user) =>{
       if(err) return res.status(500).send({menssage:`Error en la peticion: ${err}`})
-      if(user.length == 0) return res.status(404).send({message:`usuario no existe`})
-
+      if(user.length == 0) return res.status(404).send({message:`EL Usuario No Existe`})
+      
       res.status(200).send({'ci':user})
   })
 })
+
+//*-*-*-*-*-*-*-*-*-*para las Profesiones-*-*-*-*-*-*-*-*//
+route.get('/profesiones/',(req, res)=>{
+  Profesio.find({}, (err, Profesion) =>{
+    if(err) return res.status(500).send({message:`error al realizar la peticion:${err}`})
+    if(!Profesion) return res.status(404).send({message:`no existen usarios:${err}`})
+    res.send(200,{Profesion})
+  })
+})
+route.post('/profesiones', (req, res) =>{
+  console.log('POST /api/profesiones')
+  console.log("request; ",req.body)
+
+  let prof = new Profesio()
+  prof.profesiones = req.body.profesiones
+  prof.precio = req.body.precio
+  
+  Profesio.findOne({'profesiones':prof.profesiones},(err,e) => {
+    if(e){
+        console.log('profesion repetida')
+        res.status(404).send({message:`Esta profesion: ${prof.profesiones} ya se encuentra registrado`})
+    }
+    else{
+        prof.save((err, usertStored) =>{
+            if(err) {
+              res.status(404).send({messaje: `Error al salvar la base de datos:${err}`})
+              console.log(err)
+            }
+            res.status(200).send(usertStored)
+        })
+    }
+  })
+})
+
 module.exports = route
