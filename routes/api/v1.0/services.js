@@ -4,6 +4,7 @@ const mogoose =require('mongoose')
 const connect =  require('../../../database/collections/connect')
 const Registro = require('../../../database/collections/users')
 const Profesio = require('../../../database/collections/profesiones')
+const Events = require('../../../database/collections/eventos')
 
 //const Img = require('../../../database/collections/img')
 const express = require('express')
@@ -70,7 +71,7 @@ route.get('/registro/:ci',(req, res)=>{
 route.get('/registro/',(req, res)=>{
   Registro.find({}, (err, mostrar) =>{
     if(err) return res.status(500).send({message:`error al realizar la peticion:${err}`})
-    if(!mostrar) return res.status(404).send({message:`no existen usarios:${err}`})
+    if(!mostrar) return res.status(404).send({message:`no existen usarios :${err}`})    
     res.send(200,{mostrar})
   })
 })
@@ -97,7 +98,7 @@ route.delete('/registro/:Bo',(req, res)=>{
   })
 })
 
-        ///parte del login///
+//♠ ♠ ♠ ♠ ♠ ♠ ♠ ♠ AQUI EL INICIO DE SESION ♠ ♠ ♠ ♠ ♠ ♠ ♠ ♠ ♠ ♠ ♠ //
 route.get('/login/:ci=:password', (req, res) =>{
   //res.send({ email:`${req.params.email}`,password:`${req.params.pass}`})
   console.log(req.params)
@@ -113,11 +114,12 @@ route.get('/login/:ci=:password', (req, res) =>{
   })
 })
 
-//*-*-*-*-*-*-*-*-*-*para las Profesiones-*-*-*-*-*-*-*-*//
+//*-*-*-*-*-*-*-*-*-* AQUI PARA LAS PROFESIONES *-*-*-*-*-*-*-*-*//
 route.get('/profesiones/',(req, res)=>{
   Profesio.find({}, (err, Profesion) =>{
     if(err) return res.status(500).send({message:`error al realizar la peticion:${err}`})
     if(!Profesion) return res.status(404).send({message:`no existen usarios:${err}`})
+    
     res.send(200,{Profesion})
   })
 })
@@ -143,6 +145,46 @@ route.post('/profesiones', (req, res) =>{
             res.status(200).send(usertStored)
         })
     }
+  })
+})
+//♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ AQUI PARA LOS EVENTOS ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫//
+
+route.post('/Events', (req, res) =>{
+  console.log('POST /api/Events')
+  console.log("request; ",req.body)
+
+  let eve = new Events()
+  eve.nombre = req.body.nombre
+  eve.fechaIni = req.body.fechaIni
+  eve.horaIni = req.body.horaIni
+  eve.fechaFin = req.body.fechaFin
+  eve.horaFin = req.body.horaFin
+  eve.descripcion = req.body.descripcion
+  eve.invitados = req.body.invitados
+  
+  Events.findOne({'nombre':eve.nombre},(err,e) => {
+    if(e){
+        console.log('Evento repetido')
+        res.status(404).send({message:`Esta evento: ${eve.nombre} ya se encuentra registrado`})
+    }
+    else{
+        eve.save((err, Nevento) =>{
+            if(err) {
+              res.status(404).send({messaje: `Error al salvar la base de datos:${err}`})
+              console.log(err)
+            }
+            res.status(200).send(Nevento)
+        })
+    }
+  })
+})
+
+//devolver los datos
+route.get('/Events/',(req, res)=>{
+  Events.find({}, (err, event) =>{
+    if(err) return res.status(500).send({message:`error al realizar la peticion:${err}`})
+    if(!event) return res.status(404).send({message:`no existen usarios:${err}`})
+    res.send(200,{event})
   })
 })
 
