@@ -5,7 +5,8 @@ const connect =  require('../../../database/collections/connect')
 const Registro = require('../../../database/collections/users')
 const Profesio = require('../../../database/collections/profesiones')
 const Events = require('../../../database/collections/eventos')
-
+const bcryptjs = require('bcryptjs')
+const jwt = require('jsonwebtoken')
 //const Img = require('../../../database/collections/img')
 const express = require('express')
 
@@ -17,9 +18,12 @@ const HOST = require('../../../database/collections/HOST')
 const multer = require('multer');
 const fs = require('fs')
 const route = express.Router()
-
+//const qr = require('qr-image');
 route.get('/', (req, res) =>{
     res.send({ menssage:'SERVICIO API-RES EVENTOS SEDES'})
+    //var code = qr.image("Soy valdemar", { type: 'svg' });
+    //res.type('svg');
+    //code.pipe(res);
 })
 
 // metodos de peticion GET, POTS, PUT, DELETE
@@ -37,12 +41,13 @@ route.post('/registro', (req, res) =>{
   registro.profesion = req.body.profesion
   registro.institucion = req.body.institucion
   registro.cargo = req.body.cargo
-  registro.password = req.body.password
+  registro.password = bcryptjs.hashSync(req.body.password,10);
   
   Registro.findOne({'ci':registro.ci},(err,e) => {
     if(e){
         console.log('Cedula repetida')
-        res.status(404).send({message:`Esta Cedula: ${registro.ci} ya se encuentra registrado`})
+        res.status(404).json({"msn":`Esta Cedula: ${registro.ci} ya se encuentra registrado`})
+        console.log("msn");
     }
     else{
         registro.save((err, usertStored) =>{
@@ -50,17 +55,20 @@ route.post('/registro', (req, res) =>{
               res.status(404).send({messaje: `Error al salvar la base de datos:${err}`})
               console.log(err)
             }
-            res.status(200).send(usertStored)
+            console.log('guardado')
+            res.status(200).json({
+              "msn":`Registrado Con Exito`})
         })
     }
   })
 })
 
-///buscar po ID
+///buscar po CI
 route.get('/registro/:ci',(req, res)=>{
-  let ci = req.params.ci
-  Registro.findById(ci,(err, Usuario) => {
-    if(err) return res.status(500).send({message:`error al realizar la peticion:${err}`})
+  let cii = req.params.ci;
+  console.log(cii)
+  Registro.find({ci:cii}).exec((err, Usuario) => {
+    if(err) return res.status(500).send({message:`Error Al Buscar:${err}`})
     if(!Registro) return res.status(404).send({message:`el usuario no existe:${err}`})
     
     res.status(200).send({Usuario})
@@ -99,42 +107,68 @@ route.delete('/registro/:Bo',(req, res)=>{
 })
 
 //♠ ♠ ♠ ♠ ♠ ♠ ♠ ♠ AQUI EL INICIO DE SESION ♠ ♠ ♠ ♠ ♠ ♠ ♠ ♠ ♠ ♠ ♠ //
-route.get('/login/:ci=:password', (req, res) =>{
-  //res.send({ email:`${req.params.email}`,password:`${req.params.pass}`})
-  console.log(req.params)
+route.get('/login/:ci=:pass', (req, res) =>{
+  let cii = req.params.ci;
+  let pass = req.params.pass;
+  console.log(cii);
+  console.log(pass);
+  
+  Registro.findOne({ci:cii},(err,usuarioDB)=>{
+    if(err){
+      return res.status(400).json({
+        ok:false,err
+      })
+    }
 
-  let ci =req.params.ci
-  let password=req.params.password
+    if(!usuarioDB){
+      console.log("usario malo");
+      return res.status(400).json({
+        ok:false,
+        err:{
+          "msn":'(usuario) incorrecto'
+        }
+      })
+    }
 
-  Registro.find({"ci":ci,"password":password}, (err, user) =>{
-      if(err) return res.status(500).send({menssage:`Error en la peticion: ${err}`})
-      if(user.length == 0) return res.status(404).send({message:`EL Usuario No Existe`})
-      
-      res.status(200).send({'ci':user})
+
+    if(!bcryptjs.compareSync(pass,usuarioDB.password)){
+      console.log("contra malo");
+      return res.status(400).json(({
+        ok: false,
+        err:{
+          "msn":'(Contraseña) incorrecta'
+        }
+      }))
+      console.log("msn");
+    }
+    //token//
+    let token=jwt.sign({
+      usuarios: usuarioDB
+    },'Mi_secreto',{expiresIn:60*60*24*30})
+
+    res.json({
+      ok:true,
+      usuarios:usuarioDB,
+      token:token
+    })
   })
+  console.log('Exacto')
 })
+
 
 //*-*-*-*-*-*-*-*-*-* AQUI PARA LAS PROFESIONES *-*-*-*-*-*-*-*-*//
-route.get('/profesiones/',(req, res)=>{
-  Profesio.find({}, (err, Profesion) =>{
-    if(err) return res.status(500).send({message:`error al realizar la peticion:${err}`})
-    if(!Profesion) return res.status(404).send({message:`no existen usarios:${err}`})
-    
-    res.send(200,{Profesion})
-  })
-})
+//*AGREGAR DATOS*\\
 route.post('/profesiones', (req, res) =>{
   console.log('POST /api/profesiones')
   console.log("request; ",req.body)
-
   let prof = new Profesio()
   prof.profesiones = req.body.profesiones
   prof.precio = req.body.precio
-  
   Profesio.findOne({'profesiones':prof.profesiones},(err,e) => {
     if(e){
-        console.log('profesion repetida')
-        res.status(404).send({message:`Esta profesion: ${prof.profesiones} ya se encuentra registrado`})
+      console.log('Profesion repetida')
+        res.status(404).json({"msn":`Esta Profesion: ${prof.profesiones} ya se encuentra registrado`})
+        console.log("msn");
     }
     else{
         prof.save((err, usertStored) =>{
@@ -142,9 +176,32 @@ route.post('/profesiones', (req, res) =>{
               res.status(404).send({messaje: `Error al salvar la base de datos:${err}`})
               console.log(err)
             }
-            res.status(200).send(usertStored)
+            console.log('guardado')
+            res.status(200).json({
+              "msn":`Registrado Con Exito`})
         })
     }
+  })
+})
+//*DEVOLVER DATOS*\\
+route.get('/profesiones/',(req, res)=>{
+  Profesio.find({}, (err, Profesion) =>{
+    if(err) return res.status(500).send({message:`error al realizar la peticion:${err}`})
+    if(!Profesion) return res.status(404).send({message:`no existen usarios:${err}`})
+    
+    res.send(200,{Profesion});
+  })
+})
+//*EIMINAR DATOS*\\
+route.delete('/profesiones/:Bo',(req, res)=>{
+  let Bo = req.params.Bo
+  Profesio.find({profesiones:Bo}).exec((err, Usuario) => {
+    if(err) return res.status(500).send({message:`Error Al Buscar:${err}`})
+    Profesio.remove(err => {
+      if(err) return res.status(500).send({message:`error al borrar2:${err}`})
+      res.status(200).send({message:`El usuario a sido eliminado:`})
+    })
+    if(!Profesio) return res.status(404).send({message:`el usuario no existe:${err}`})
   })
 })
 //♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ AQUI PARA LOS EVENTOS ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫//
