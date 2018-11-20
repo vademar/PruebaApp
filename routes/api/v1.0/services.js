@@ -45,20 +45,18 @@ route.post('/registro', (req, res) =>{
   
   Registro.findOne({'ci':registro.ci},(err,e) => {
     if(e){
-        console.log('Cedula repetida')
-        res.status(404).json({"msn":`Esta Cedula: ${registro.ci} ya se encuentra registrado`})
-        console.log("msn");
+      res.status(404).json({"msn":`Esta Cedula: ${registro.ci} ya se encuentra registrado`})
+      console.log('msn')
     }
     else{
-        registro.save((err, usertStored) =>{
-            if(err) {
-              res.status(404).send({messaje: `Error al salvar la base de datos:${err}`})
-              console.log(err)
-            }
-            console.log('guardado')
-            res.status(200).json({
-              "msn":`Registrado Con Exito`})
-        })
+      registro.save((err, usertStored) =>{
+      if(err) {
+        res.status(404).send({messaje: `Error al salvar la base de datos:${err}`})
+        console.log(err)
+      }
+      console.log('guardado')
+      res.status(200).json({"msn":`Registrado Con Exito`})
+      })
     }
   })
 })
@@ -146,6 +144,8 @@ route.get('/login/:ci=:pass', (req, res) =>{
       usuarios: usuarioDB
     },'Mi_secreto',{expiresIn:60*60*24*30})
 
+    
+
     res.json({
       ok:true,
       usuarios:usuarioDB,
@@ -153,6 +153,7 @@ route.get('/login/:ci=:pass', (req, res) =>{
     })
   })
   console.log('Exacto')
+
 })
 
 
@@ -167,19 +168,18 @@ route.post('/profesiones', (req, res) =>{
   Profesio.findOne({'profesiones':prof.profesiones},(err,e) => {
     if(e){
       console.log('Profesion repetida')
-        res.status(404).json({"msn":`Esta Profesion: ${prof.profesiones} ya se encuentra registrado`})
-        console.log("msn");
+      res.status(404).json({"msn":`Esta Profesion: ${prof.profesiones} ya se encuentra registrado`})
+      console.log("msn");
     }
     else{
-        prof.save((err, usertStored) =>{
-            if(err) {
-              res.status(404).send({messaje: `Error al salvar la base de datos:${err}`})
-              console.log(err)
-            }
-            console.log('guardado')
-            res.status(200).json({
-              "msn":`Registrado Con Exito`})
-        })
+      prof.save((err, usertStored) =>{
+        if(err) {
+          res.status(404).send({messaje: `Error al salvar la base de datos:${err}`})
+          console.log(err)
+        }
+        console.log('guardado')
+        res.status(200).json({"msn":`Registrado Con Exito`})
+      })
     }
   })
 })
@@ -221,17 +221,16 @@ route.post('/Events', (req, res) =>{
   
   Events.findOne({'nombre':eve.nombre},(err,e) => {
     if(e){
-        console.log('Evento repetido')
-        res.status(404).send({message:`Esta evento: ${eve.nombre} ya se encuentra registrado`})
+      res.status(404).json({"msn":`Este Evento: ${eve.nombre} ya se encuentra registrado`})
     }
     else{
-        eve.save((err, Nevento) =>{
-            if(err) {
-              res.status(404).send({messaje: `Error al salvar la base de datos:${err}`})
-              console.log(err)
-            }
-            res.status(200).send(Nevento)
-        })
+      eve.save((err, Nevento) =>{
+      if(err) {
+        res.status(404).send({messaje: `Error al salvar la base de datos:${err}`})
+        console.log(messaje)
+      }
+      res.status(200).json({"msn":`Registrado Con Exito`})
+      })
     }
   })
 })
