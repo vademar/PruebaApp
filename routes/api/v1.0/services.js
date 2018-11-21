@@ -5,6 +5,7 @@ const connect =  require('../../../database/collections/connect')
 const Registro = require('../../../database/collections/users')
 const Profesio = require('../../../database/collections/profesiones')
 const Events = require('../../../database/collections/eventos')
+const Regiss = require('../../../database/collections/regis')
 const bcryptjs = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 //const Img = require('../../../database/collections/img')
@@ -68,7 +69,7 @@ route.get('/registro/:ci',(req, res)=>{
   Registro.find({ci:cii}).exec((err, Usuario) => {
     if(err) return res.status(500).send({message:`Error Al Buscar:${err}`})
     if(!Registro) return res.status(404).send({message:`el usuario no existe:${err}`})
-    
+    else return res.status(200).send({message:`No existe usuario:${err}`})
     res.status(200).send({Usuario})
   })
 })
@@ -119,7 +120,6 @@ route.get('/login/:ci=:pass', (req, res) =>{
     }
 
     if(!usuarioDB){
-      console.log("usario malo");
       return res.status(400).json({
         ok:false,
         err:{
@@ -130,7 +130,6 @@ route.get('/login/:ci=:pass', (req, res) =>{
 
 
     if(!bcryptjs.compareSync(pass,usuarioDB.password)){
-      console.log("contra malo");
       return res.status(400).json(({
         ok: false,
         err:{
@@ -143,8 +142,6 @@ route.get('/login/:ci=:pass', (req, res) =>{
     let token=jwt.sign({
       usuarios: usuarioDB
     },'Mi_secreto',{expiresIn:60*60*24*30})
-
-    
 
     res.json({
       ok:true,
@@ -193,15 +190,27 @@ route.get('/profesiones/',(req, res)=>{
   })
 })
 //*EIMINAR DATOS*\\
-route.delete('/profesiones/:Bo',(req, res)=>{
-  let Bo = req.params.Bo
-  Profesio.find({profesiones:Bo}).exec((err, Usuario) => {
-    if(err) return res.status(500).send({message:`Error Al Buscar:${err}`})
-    Profesio.remove(err => {
-      if(err) return res.status(500).send({message:`error al borrar2:${err}`})
-      res.status(200).send({message:`El usuario a sido eliminado:`})
+route.delete('/profesiones/:pro',(req, res)=>{
+  let Bo = req.params.pro
+  Profesio.findOne({profesiones:Bo}).exec((err, proff) => {
+    if(err) res.status(500).send({message:`error al borrar`})
+    if(!proff) return res.status(404).send({message: 'Profesion que quiere eliminar no existe'}) 
+    proff.remove(err=>{
+      if(err) res.status(500).send({message:`error al borrar la profesion`})
+      res.status(200).send({menssage:`la profesion fue borrada `})
     })
-    if(!Profesio) return res.status(404).send({message:`el usuario no existe:${err}`})
+  })
+})
+//actualizar  por id
+route.put('/profesiones/:pros',(req, res) => {
+  let id = req.params.pros
+  let update = req.body
+  console.log(id);
+  Profesio.findByIdAndUpdate(id, update, (err, actUs) => {
+    if(err) return res.status(500).send({message:`error al actualizar el producto`})
+    if(!actUs) res.status(404).send({ message: `No existe tal producto `})
+    res.status(200).send({menssage:`profesion actualizada`})
+    console.log(actUs)
   })
 })
 //♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ AQUI PARA LOS EVENTOS ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫//
@@ -243,5 +252,39 @@ route.get('/Events/',(req, res)=>{
     res.send(200,{event})
   })
 })
-
+//♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ AQUI PARA EL REGISTRO DE USUARIOS EN EVENTOS
+route.post('/regis', (req, res) =>{
+  console.log('POST /api/regis')
+  console.log("request; ",req.body)
+  let usreg = new Regiss()
+  usreg.ev_nom = req.body.ev_nom
+  usreg.ev_descrip = req.body.ev_descrip
+  usreg.us_nom = req.body.us_nom
+  usreg.us_ci = req.body.us_ci
+  usreg.monto = req.body.monto
+  
+  Regiss.findOne({'us_ci':usreg.us_ci},(err,req) => {
+    if(req){
+      res.status(404).json({"msn":`Usuario: ${usreg.us_ci} ya se encuentra registrado en ${usreg.ev_nom}`})
+    }
+    else{
+      usreg.save((err, Revento) =>{
+      if(err) {
+        res.status(404).send({messaje: `Error al salvar la base de datos:${err}`})
+        console.log(err)
+      }
+      res.status(200).json({"msn":`Registrado Con Exito`})
+      })
+    }
+  })
+});
+//*DEVOLVER DATOS*\\
+route.get('/regis/',(req, res)=>{
+  Regiss.find({}, (err, Register) =>{
+    if(err) return res.status(500).send({message:`error al realizar la peticion:${err}`})
+    if(!Register) return res.status(404).send({message:`no existen registros:${err}`})
+    
+    res.send(200,{Register});
+  })
+})
 module.exports = route
