@@ -165,17 +165,17 @@ route.post('/profesiones', (req, res) =>{
   Profesio.findOne({'profesiones':prof.profesiones},(err,e) => {
     if(e){
       console.log('Profesion repetida')
-      res.status(404).json({"msn":`Esta Profesion: ${prof.profesiones} ya se encuentra registrado`})
+      res.status(404).json({"msn":`this profession: ${prof.profesiones} is already registered`})
       console.log("msn");
     }
     else{
       prof.save((err, usertStored) =>{
         if(err) {
-          res.status(404).send({messaje: `Error al salvar la base de datos:${err}`})
+          res.status(404).send({messaje: `Error with the connection to the database ${err}`})
           console.log(err)
         }
         console.log('guardado')
-        res.status(200).json({"msn":`Registrado Con Exito`})
+        res.status(200).json({"msn":`Successful Registration`})
       })
     }
   })
@@ -193,11 +193,11 @@ route.get('/profesiones/',(req, res)=>{
 route.delete('/profesiones/:pro',(req, res)=>{
   let Bo = req.params.pro
   Profesio.findOne({profesiones:Bo}).exec((err, proff) => {
-    if(err) res.status(500).send({message:`error al borrar`})
-    if(!proff) return res.status(404).send({message: 'Profesion que quiere eliminar no existe'}) 
+    if(err) res.status(500).send({"msn":`Error deleting`})
+    if(!proff) return res.status(404).send({"msn": `The Profession you want to eliminate does not exist`}) 
     proff.remove(err=>{
-      if(err) res.status(500).send({message:`error al borrar la profesion`})
-      res.status(200).send({menssage:`la profesion fue borrada `})
+      if(err) res.status(500).send({"msn":`Failed to delete the profession`})
+      res.status(200).send({"msn":`The profession was successfully deleted`})
     })
   })
 })
@@ -207,9 +207,9 @@ route.put('/profesiones/:pros',(req, res) => {
   let update = req.body
   console.log(id);
   Profesio.findByIdAndUpdate(id, update, (err, actUs) => {
-    if(err) return res.status(500).send({message:`error al actualizar el producto`})
-    if(!actUs) res.status(404).send({ message: `No existe tal producto `})
-    res.status(200).send({menssage:`profesion actualizada`})
+    if(err) return res.status(500).send({"msn":`error al actualizar el producto`})
+    if(!actUs) res.status(404).send({ "msn": `No existe tal producto `})
+    res.status(200).send({"msn":`profesion actualizada`})
     console.log(actUs)
   })
 })
