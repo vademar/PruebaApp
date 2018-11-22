@@ -27,9 +27,9 @@ route.get('/', (req, res) =>{
     //code.pipe(res);
 })
 
-// metodos de peticion GET, POTS, PUT, DELETE
-//registro de usuarios usando la coleccion users
+// ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ AQUI PARA LOS USUARIOS ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓
 
+//REGISTRAR A LOS USUARIOS\\
 route.post('/registro', (req, res) =>{
 
   console.log('POST /api/registro')
@@ -52,7 +52,7 @@ route.post('/registro', (req, res) =>{
     else{
       registro.save((err, usertStored) =>{
       if(err) {
-        res.status(404).send({messaje: `Error al salvar la base de datos:${err}`})
+        res.status(404).send({"msn": `Error al salvar la base de datos:${err}`})
         console.log(err)
       }
       console.log('guardado')
@@ -61,8 +61,16 @@ route.post('/registro', (req, res) =>{
     }
   })
 })
+/// MOSTRAR TODO \\\
+route.get('/registro/',(req, res)=>{
+  Registro.find({}, (err, mostrar) =>{
+    if(err) return res.status(500).send({message:`error al realizar la peticion:${err}`})
+    if(!mostrar) return res.status(404).send({message:`no existen usarios :${err}`})    
+    res.send(200,{mostrar})
+  })
+})
 
-///buscar po CI
+///BUSCAR POR CEDULA\\\
 route.get('/registro/:ci',(req, res)=>{
   let cii = req.params.ci;
   console.log(cii)
@@ -74,38 +82,31 @@ route.get('/registro/:ci',(req, res)=>{
   })
 })
 
-///buscar todo
-route.get('/registro/',(req, res)=>{
-  Registro.find({}, (err, mostrar) =>{
-    if(err) return res.status(500).send({message:`error al realizar la peticion:${err}`})
-    if(!mostrar) return res.status(404).send({message:`no existen usarios :${err}`})    
-    res.send(200,{mostrar})
-  })
-})
-
-//actualizar  por id
+//*ACTUALIZAR USUARIOS*\\
 route.put('/registro/:id',(req, res) => {
   let id = req.params.id
   let update = req.body
   Registro.findByIdAndUpdate(id, update, (err, actUs) => {
-    if(err) return res.status(500).send({message:`error al actualizar:${err}`})
-    res.status(200).send({actUs})
+    if(err) return res.status(500).send({"msn":`error al actualizar al usuario:${err}`})
+    if(!actUs) res.status(404).send({"msn": `No existe el Usuario `})
+    res.status(200).send({"msn":`Usuario actualizado`})
+    console.log(actUs)
   })
 })
-
-///eliminar
-route.delete('/registro/:Bo',(req, res)=>{
-  let Bo = req.params.Bo
-  Registro.findById(Bo, (err,Usuario)=>{
-    if(err) return res.status(500).send({message:`error al borrar1:${err}`})
+//*ELIMINAR USUARIOS*\\
+route.delete('/registro/:Us',(req, res)=>{
+  let Cii = req.params.Us
+  Registro.findOne({ci:Cii}).exec((err,Usuario) => {
+    if(err) res.status(500).send({"msn":`error al borrar`})
+    if(!Usuario) return res.status(404).send({"msn": `The User you want to eliminate does not exist`}) 
     Usuario.remove(err => {
-      if(err) return res.status(500).send({message:`error al borrar2:${err}`})
-      res.status(200).send({message:`El usuario a sido eliminado:`})
+      if(err) return res.status(500).send({"msn":`Fallo al borrar:${err}`})
+      res.status(200).send({"msn":`El usuario a sido eliminado`})
     })
   })
 })
 
-//♠ ♠ ♠ ♠ ♠ ♠ ♠ ♠ AQUI EL INICIO DE SESION ♠ ♠ ♠ ♠ ♠ ♠ ♠ ♠ ♠ ♠ ♠ //
+// ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ AQUI PARA EL INICIO DE SESION ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓
 route.get('/login/:ci=:pass', (req, res) =>{
   let cii = req.params.ci;
   let pass = req.params.pass;
@@ -128,7 +129,6 @@ route.get('/login/:ci=:pass', (req, res) =>{
       })
     }
 
-
     if(!bcryptjs.compareSync(pass,usuarioDB.password)){
       return res.status(400).json(({
         ok: false,
@@ -136,7 +136,6 @@ route.get('/login/:ci=:pass', (req, res) =>{
           "msn":'(Contraseña) incorrecta'
         }
       }))
-      console.log("msn");
     }
     //token//
     let token=jwt.sign({
@@ -149,12 +148,10 @@ route.get('/login/:ci=:pass', (req, res) =>{
       token:token
     })
   })
-  console.log('Exacto')
-
 })
 
 
-//*-*-*-*-*-*-*-*-*-* AQUI PARA LAS PROFESIONES *-*-*-*-*-*-*-*-*//
+// ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ AQUI PARA LOS PROFESIONES ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓
 //*AGREGAR DATOS*\\
 route.post('/profesiones', (req, res) =>{
   console.log('POST /api/profesiones')
@@ -166,12 +163,11 @@ route.post('/profesiones', (req, res) =>{
     if(e){
       console.log('Profesion repetida')
       res.status(404).json({"msn":`this profession: ${prof.profesiones} is already registered`})
-      console.log("msn");
     }
     else{
       prof.save((err, usertStored) =>{
         if(err) {
-          res.status(404).send({messaje: `Error with the connection to the database ${err}`})
+          res.status(404).send({"msn": `Error with the connection to the database ${err}`})
           console.log(err)
         }
         console.log('guardado')
@@ -189,7 +185,7 @@ route.get('/profesiones/',(req, res)=>{
     res.send(200,{Profesion});
   })
 })
-//*EIMINAR DATOS*\\
+//*ELIMINAR PROFESIONES*\\
 route.delete('/profesiones/:pro',(req, res)=>{
   let Bo = req.params.pro
   Profesio.findOne({profesiones:Bo}).exec((err, proff) => {
@@ -201,19 +197,19 @@ route.delete('/profesiones/:pro',(req, res)=>{
     })
   })
 })
-//actualizar  por id
+//*ACTUALIZAR PROFESIONES*\\
 route.put('/profesiones/:pros',(req, res) => {
   let id = req.params.pros
   let update = req.body
   console.log(id);
   Profesio.findByIdAndUpdate(id, update, (err, actUs) => {
-    if(err) return res.status(500).send({"msn":`error al actualizar el producto`})
-    if(!actUs) res.status(404).send({ "msn": `No existe tal producto `})
-    res.status(200).send({"msn":`profesion actualizada`})
+    if(err) return res.status(500).send({"msn":`Error Updating`})
+    if(!actUs) res.status(404).send({ "msn": `the profession was not updated`})
+    res.status(200).send({"msn":`Successfully updated profession`})
     console.log(actUs)
   })
 })
-//♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ AQUI PARA LOS EVENTOS ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫//
+// ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ AQUI PARA LOS EVENTOS ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓
 
 route.post('/Events', (req, res) =>{
   console.log('POST /api/Events')
@@ -244,15 +240,40 @@ route.post('/Events', (req, res) =>{
   })
 })
 
-//devolver los datos
+// * DEVOLVER DATOS  DE EVENTOS * \\
 route.get('/Events/',(req, res)=>{
   Events.find({}, (err, event) =>{
-    if(err) return res.status(500).send({message:`error al realizar la peticion:${err}`})
-    if(!event) return res.status(404).send({message:`no existen usarios:${err}`})
+    if(err) return res.status(500).send({"msn":`error al realizar la peticion:${err}`})
+    if(!event) return res.status(404).send({"msn":`no existen usarios:${err}`})
     res.send(200,{event})
   })
 })
-//♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ ♫ AQUI PARA EL REGISTRO DE USUARIOS EN EVENTOS
+//*ACTUALIZAR EVENTOS*\\
+route.put('/Events/:eve',(req, res) => {
+  let id = req.params.eve
+  let update = req.body
+  console.log(id);
+  Events.findByIdAndUpdate(id, update, (err, Acteve) => {
+    if(err) return res.status(500).send({"msn":`Error Updating`})
+    if(!Acteve) res.status(404).send({ "msn": `the Event was not updated`})
+    res.status(200).send({"msn":`Successfully updated Event`})
+    console.log(Acteve)
+  })
+})
+//*ELIMINAR EVENTOS*\\
+route.delete('/Events/:pro',(req, res)=>{
+  let Bo = req.params.pro
+  Events.findOne({nombre:Bo}).exec((err, Acteve) => {
+    if(err) res.status(500).send({"msn":`Error deleting`})
+    if(!Acteve) return res.status(404).send({"msn": `The Event you want to eliminate does not exist`}) 
+    Acteve.remove(err=>{
+      if(err) res.status(500).send({"msn":`Failed to delete the Event`})
+      res.status(200).send({"msn":`The Event was successfully deleted`})
+    })
+  })
+})
+
+//▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ AQUI PARA EL REGISTRO DE USUARIOS EN EVENTOS ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓
 route.post('/regis', (req, res) =>{
   console.log('POST /api/regis')
   console.log("request; ",req.body)
@@ -270,7 +291,7 @@ route.post('/regis', (req, res) =>{
     else{
       usreg.save((err, Revento) =>{
       if(err) {
-        res.status(404).send({messaje: `Error al salvar la base de datos:${err}`})
+        res.status(404).send({"msn": `Error al salvar la base de datos:${err}`})
         console.log(err)
       }
       res.status(200).json({"msn":`Registrado Con Exito`})
@@ -278,11 +299,11 @@ route.post('/regis', (req, res) =>{
     }
   })
 });
-//*DEVOLVER DATOS*\\
+//*DEVOLVER DATOS DE REGISTRO DE USUARIOS EN EVENTOS*\\
 route.get('/regis/',(req, res)=>{
   Regiss.find({}, (err, Register) =>{
-    if(err) return res.status(500).send({message:`error al realizar la peticion:${err}`})
-    if(!Register) return res.status(404).send({message:`no existen registros:${err}`})
+    if(err) return res.status(500).send({"msn":`error al realizar la peticion:${err}`})
+    if(!Register) return res.status(404).send({"msn":`no existen registros:${err}`})
     
     res.send(200,{Register});
   })
