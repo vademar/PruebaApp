@@ -11,4 +11,4 @@ const RegisSchema = Schema({
     us_ci: String,
     monto: String
 })
-module.exports = mongoose.model('Regis', RegisSchema)
+module.exports = mongoose.model('Regi', RegisSchema)

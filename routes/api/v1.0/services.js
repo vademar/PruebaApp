@@ -6,6 +6,7 @@ const Registro = require('../../../database/collections/users')
 const Profesio = require('../../../database/collections/profesiones')
 const Events = require('../../../database/collections/eventos')
 const Regiss = require('../../../database/collections/regis')
+const Adminss = require('../../../database/collections/admin')
 const bcryptjs = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 //const Img = require('../../../database/collections/img')
@@ -28,10 +29,8 @@ route.get('/', (req, res) =>{
 })
 
 // ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ AQUI PARA LOS USUARIOS ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓
-
-//REGISTRAR A LOS USUARIOS\\
+//*AGREGAR USUARIOS*\\
 route.post('/registro', (req, res) =>{
-
   console.log('POST /api/registro')
   console.log("request; ",req.body)
 
@@ -69,7 +68,6 @@ route.get('/registro/',(req, res)=>{
     res.send(200,{mostrar})
   })
 })
-
 ///BUSCAR POR CEDULA\\\
 route.get('/registro/:ci',(req, res)=>{
   let cii = req.params.ci;
@@ -81,7 +79,6 @@ route.get('/registro/:ci',(req, res)=>{
     res.status(200).send({Usuario})
   })
 })
-
 //*ACTUALIZAR USUARIOS*\\
 route.put('/registro/:id',(req, res) => {
   let id = req.params.id
@@ -122,20 +119,14 @@ route.get('/login/:ci=:pass', (req, res) =>{
 
     if(!usuarioDB){
       return res.status(400).json({
-        ok:false,
-        err:{
-          "msn":'(usuario) incorrecto'
-        }
+        err:{"msn":'(usuario) incorrecto'}
       })
     }
 
     if(!bcryptjs.compareSync(pass,usuarioDB.password)){
-      return res.status(400).json(({
-        ok: false,
-        err:{
-          "msn":'(Contraseña) incorrecta'
-        }
-      }))
+      return res.status(400).json({
+        err:{"msn":'(Contraseña) incorrecta'}
+      })
     }
     //token//
     let token=jwt.sign({
@@ -150,9 +141,8 @@ route.get('/login/:ci=:pass', (req, res) =>{
   })
 })
 
-
 // ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ AQUI PARA LOS PROFESIONES ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓
-//*AGREGAR DATOS*\\
+//*AGREGAR PROFESIONES*\\
 route.post('/profesiones', (req, res) =>{
   console.log('POST /api/profesiones')
   console.log("request; ",req.body)
@@ -209,8 +199,9 @@ route.put('/profesiones/:pros',(req, res) => {
     console.log(actUs)
   })
 })
-// ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ AQUI PARA LOS EVENTOS ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓
 
+// ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ AQUI PARA LOS EVENTOS ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓
+//*AGREGAR EVENTOS*\\
 route.post('/Events', (req, res) =>{
   console.log('POST /api/Events')
   console.log("request; ",req.body)
@@ -239,7 +230,6 @@ route.post('/Events', (req, res) =>{
     }
   })
 })
-
 // * DEVOLVER DATOS  DE EVENTOS * \\
 route.get('/Events/',(req, res)=>{
   Events.find({}, (err, event) =>{
@@ -290,11 +280,11 @@ route.post('/regis', (req, res) =>{
     }
     else{
       usreg.save((err, Revento) =>{
-      if(err) {
-        res.status(404).send({"msn": `Error al salvar la base de datos:${err}`})
-        console.log(err)
-      }
-      res.status(200).json({"msn":`Registrado Con Exito`})
+        if(err) {
+          res.status(404).send({"msn": `Error al salvar la base de datos:${err}`})
+          console.log(err)
+        }
+        res.status(200).json({"msn":`Registrado Con Exito`})
       })
     }
   })
@@ -308,4 +298,64 @@ route.get('/regis/',(req, res)=>{
     res.send(200,{Register});
   })
 })
+// ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ AQUI PARA LOS ADMINISTRADORES ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓
+//*AGREGAR ADMINISTRADOR*\\
+route.post('/adminis', (req, res) =>{
+  console.log('POST /api/adminis')
+  console.log("request; ",req.body)
+  let admi = new Adminss()
+  admi.nombre = req.body.nombre
+  admi.pass = req.body.pass
+  Adminss.findOne({'nombre':admi.nombre},(err,e) => {
+    if(e){
+      console.log('administrador repetida')
+      res.status(404).json({"msn":`this admin: ${admi.nombre } is already registered`})
+    }
+    else{
+      admi.save((err, Nadmin) =>{
+        if(err) {
+          res.status(404).send({"msn": `Error with the connection to the database ${err}`})
+          console.log(err)
+        }
+        res.status(200).json({"msn":`Successful Registration`})
+      })
+    }
+  })
+})
+//*DEVOLVER DATOS*\\
+route.get('/adminis/',(req, res)=>{
+  Adminss.find({}, (err, admis) =>{
+    if(err) return res.status(500).send({message:`error al realizar la peticion:${err}`})
+    if(!admis) return res.status(404).send({message:`no existen administradores:${err}`})
+    
+    res.send(200,{admis});
+  })
+})
+//*ELIMINAR ADMINISTRADORES*\\
+route.delete('/adminis/:pro',(req, res)=>{
+  let Bo = req.params.pro
+  Adminss.findOne({nombre:Bo}).exec((err, ADMI) => {
+    if(err) res.status(500).send({"msn":`Error deleting`})
+    if(!ADMI) return res.status(404).send({"msn": `The Administer you want to eliminate does not exist`}) 
+    ADMI.remove(err=>{
+      if(err) res.status(500).send({"msn":`Failed to delete the Administrator`})
+      res.status(200).send({"msn":`The Administrator was successfully deleted`})
+    })
+  })
+})
+// ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ INICIO DE SESION DE ADMINISTRADORES ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓
+route.get('/sesion/:ci=:pass', (req, res) =>{
+  let cii = req.params.ci;
+  let con = req.params.pass;
+  console.log(cii);
+  console.log(con);
+  
+  Adminss.findOne({nombre:cii,pass:con},(err,admin)=>{
+    if(err) return res.status(500).send({"msn":`error al realizar la peticion:${err}`})
+    if(!admin) return res.status(404).send({"msn":`Por Favor revise sus Datos:`})
+    
+    res.send(200,{admin});
+  })
+})
+
 module.exports = route
