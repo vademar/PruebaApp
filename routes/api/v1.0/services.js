@@ -5,7 +5,7 @@ const connect =  require('../../../database/collections/connect')
 const Registro = require('../../../database/collections/users')
 const Profesio = require('../../../database/collections/profesiones')
 const Events = require('../../../database/collections/eventos')
-const Regiss = require('../../../database/collections/regis')
+const Registra = require('../../../database/collections/registra')
 const Adminss = require('../../../database/collections/admin')
 const bcryptjs = require('bcryptjs')
 const jwt = require('jsonwebtoken')
@@ -264,38 +264,28 @@ route.delete('/Events/:pro',(req, res)=>{
 })
 
 //▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ AQUI PARA EL REGISTRO DE USUARIOS EN EVENTOS ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓
-route.post('/regis', (req, res) =>{
-  console.log('POST /api/regis')
-  console.log("request; ",req.body)
-  let usreg = new Regiss()
-  usreg.ev_nom = req.body.ev_nom
-  usreg.ev_descrip = req.body.ev_descrip
-  usreg.us_nom = req.body.us_nom
-  usreg.us_ci = req.body.us_ci
-  usreg.monto = req.body.monto
+route.post('/registrarlos', (req, res) =>{
+  console.log('POST /api/registrarlos')
+  let regis = new Registra()
+  regis.eventos = req.body.eventos
+  regis.usuarios = req.body.usuarios
   
-  Regiss.findOne({'us_ci':usreg.us_ci},(err,req) => {
-    if(req){
-      res.status(404).json({"msn":`Usuario: ${usreg.us_ci} ya se encuentra registrado en ${usreg.ev_nom}`})
+  regis.save((err, usertStored) =>{
+    if(err) {
+      res.status(404).send({"msn": `Error with the connection to the database ${err}`})
+      console.log(err)
     }
-    else{
-      usreg.save((err, Revento) =>{
-        if(err) {
-          res.status(404).send({"msn": `Error al salvar la base de datos:${err}`})
-          console.log(err)
-        }
-        res.status(200).json({"msn":`Registrado Con Exito`})
-      })
-    }
+      console.log('guardado')
+      res.status(200).json({"msn":`Successful Registration`})
   })
 });
 //*DEVOLVER DATOS DE REGISTRO DE USUARIOS EN EVENTOS*\\
-route.get('/regis/',(req, res)=>{
-  Regiss.find({}, (err, Register) =>{
+route.get('/registrarlos/',(req, res)=>{
+  Registra.find({}, (err, Regis) =>{
     if(err) return res.status(500).send({"msn":`error al realizar la peticion:${err}`})
-    if(!Register) return res.status(404).send({"msn":`no existen registros:${err}`})
-    
-    res.send(200,{Register});
+    if(!Regis) return res.status(404).send({"msn":`no existen registros:${err}`})
+    console.log(Regis)
+    res.send(200,{Regis});
   })
 })
 // ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ AQUI PARA LOS ADMINISTRADORES ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓ ▓

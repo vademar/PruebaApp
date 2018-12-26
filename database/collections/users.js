@@ -11,7 +11,7 @@ const UserSchema = Schema({
     institucion:String,
     cargo:String,
     ci:{type:String, unique:true},
-    password: {type:String, select:false},
+    password: {type:String, select:true},
     signupDate: {type:Date, default:Date.now()},
     lastLogin:Date
 })

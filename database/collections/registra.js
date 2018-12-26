@@ -5,10 +5,7 @@ const Schema = mongoose.Schema
 const bcrypt = require('bcrypt-nodejs')
 
 const RegisSchema = Schema({
-    ev_nom: String,
-    ev_descrip: String,
-    us_nom: String,
-    us_ci: String,
-    monto: String
+    eventos: String,
+    usuarios: String
 })
 module.exports = mongoose.model('Regi', RegisSchema)
